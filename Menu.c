@@ -1,53 +1,61 @@
+/* Funções auxiliares e complementares abaixo da "main" */
+
+
+/* Inserção das bibliotecas necessárias */
 #include <stdio.h>
 #include <stdlib.h>
-#include "TableHash.c"
+#include "TableHash.c" // Biblioteca interna feita pelo grupo, contém todas estruturas necessárias
 #include <time.h>
 
-#define NUM_NUMEROS 3
-#define NUM_DIGITOS 9
+/* Definição de constantes que serão necessárias para a função de sugestão de números solicitado no projeto */
+#define NUM_NUMEROS 3 // 3 define a quantidade de sugestões que serão feitas em uma inserção
+#define NUM_DIGITOS 9 // 9 define a quantidade de digitos que é necessário para o campo telefone
 
 int main(){
-    int opcao;
-    long int valor;
-    int ddd;
-    Usuario *u;
-    Lista tabela[TAM];
+    /* Declaração de variáveis */
+    /* Aprendemos muito bem na disciplina de Conceitos de Linguagem de Programação com a professora Ana Luiza que a declaração de variáveis globais comprometem a segurança do código e é considerado uma má prática de programação, porém infelizmente a linguagem C não permite a criação de variáveis dentro do (switch case), onde fizemos o menu do programa*/
 
-    clock_t inicio, fim;    
-    double tempo_decorrido;
-    double segundos;
+    int opcao; // Variável utilizada para navegar pelo menu
+    long int auxTelefone; // Variável utilizada para auxiliar nas funções que requerem "telefone" como parâmetro
+    int ddd; // Variável utilizada para auxiliar nas funções que requerem "ddd" como parâmetro
+    Usuario *u; // Declaração do TAD usuário, para que dentro do menu seja manipulado
+    Lista tabela[TAM]; // Declaração da tabela Hash com tamanho definido
+
+    
 
     char numeros[NUM_NUMEROS][NUM_DIGITOS + 1];
     srand(time(NULL));
 
+    // Inicializar a tabela hash com todos elementos como NULL
     inicializarTabela(tabela);
 
 
+    /* Menu utilizando (do while para repetiçao e switch case para escolha)*/
     do{
         printf("\n\t---->Sistema de telefonia INETSYS<----\t\n");
-        printf("\n\t1 - Inserir novo usuario\n\t2 - Remover usuario cadastrado\n\t3 - Imprimir lista de usuarios por DDD\n\t4 - Imprimir Tabela de DDD's\n\t6 - Encontrar dados usuario pelo telefone\n\t7 - Buscar telefone\n\t0 - Sair\n\t");
+        printf("\n\t1 - Inserir novo usuario\n\t2 - Remover usuario cadastrado\n\t3 - Imprimir lista de usuarios por DDD\n\t4 - Imprimir Tabela de DDD's\n\t5 - Encontrar dados usuario pelo telefone\n\t0 - Sair\n\t");
         scanf("%d", &opcao);
 
         switch(opcao){
-            case 0:
+            case 0: // Condição de saída e parada do programa
             printf("Saindo!");
 
             break;
             
-            case 1:
-            //inicio = clock ();
-            u = malloc(sizeof(Usuario));
+            case 1: // Condição para inserir um novo usuário
+            
+            u = malloc(sizeof(Usuario)); // Aloca memória, assim criando um novo usuário e armazenando-o na variável "u"
 
+             /* Gerando números aleatórios utilizando a biblioteca time.h */
             for (int i = 0; i < NUM_NUMEROS; i++) {
                 gerarNumeroAleatorio(numeros[i]);
             }
-
-            
             for (int i = 0; i < NUM_NUMEROS; i++) {
                 printf("\t[X] - %s\n",  numeros[i]);
             }
+
+            /* Etapa em que o usuário poderá adicionar os dados */
             printf("\tDigite um dos numeros acima ou crie um seu: ");
-            
             scanf("%d", &u->telefone);
             printf("\tDigite o nome a ser inserido: ");
             scanf("%s", u->nome);    
@@ -56,39 +64,38 @@ int main(){
             printf("\tDigite o DDD: ");
             scanf("%d", &u->ddd);
 
-            
+            // Checando se a lista encadeada presente na posição calculada da tabela hash já possui elementos, se sim apenas insere um novo...
             if(tabela[calcularFuncaoHash(u->ddd)].tamanho != 0){
                 
                 tabela[calcularFuncaoHash(u->ddd)].inicio->elementos = inserir(tabela[calcularFuncaoHash(u->ddd)].inicio->elementos, u);
                 
             } 
-            
+            // .. senão, cria uma nova raiz e insere o usuário na raiz, e a raiz é inserida na tabela hash
             else {
                 NoAVL* raiz = NULL;
                 raiz = inserir(raiz, u);
                 inserirHash(tabela, raiz);
             }
 
-            fim = clock ();
-            tempo_decorrido = ((float)(inicio - fim)/CLOCKS_PER_SEC);
             
-            printf("%11f\n", tempo_decorrido); 
+            
+            
             
             break;
 
-            case 2:
+            case 2: // Condição para remover um usuário
             printf("Digite o DDD do telefone que vc deseja remover: ");
-            scanf("%d", &ddd);
-            if(checandoDDDExiste(tabela,ddd) == 0){
+            scanf("%d", &ddd); // Coletando em que árvore o usuário está
+            if(checandoDDDExiste(tabela,ddd) == 0){ // Checando se o essa árvore existe
                 printf("\t\nDDD inexistente!\n");
                 break;
             }
-            printf("Digite o telefone que vc deseja remover: ");
-            scanf("%ld", &valor);
+            printf("Digite o telefone que vc deseja remover: "); // Coletando o telefone do usuário que será removido
+            scanf("%ld", &auxTelefone);
 
-            if(busca(tabela[calcularFuncaoHash(ddd)].inicio->elementos, valor)){
-                tabela[calcularFuncaoHash(ddd)].inicio->elementos = remover(tabela[calcularFuncaoHash(ddd)].inicio->elementos, valor);
-            } else {
+            if(busca(tabela[calcularFuncaoHash(ddd)].inicio->elementos, auxTelefone)){ // Checando se o telefone existe, caso exista remove...
+                tabela[calcularFuncaoHash(ddd)].inicio->elementos = remover(tabela[calcularFuncaoHash(ddd)].inicio->elementos, auxTelefone);
+            } else { // senão, apenas imprime:
                 printf("Nao existe\n");
             }
 
@@ -97,48 +104,42 @@ int main(){
 
 
             
-            case 3:
+            case 3: // Condição para impressão de uma árvore
             printf("\tDigite o DDD:\n");
-            scanf("%d", &ddd);
-            if(checandoDDDExiste(tabela,ddd) == 0){
+            scanf("%d", &ddd); // Coletando em que árvore o usuário está
+            if(checandoDDDExiste(tabela,ddd) == 0){ // Checando se o essa árvore existe
                 printf("\t\nDDD inexistente!\n");
                 break;
             }
-            printf("\t1 - Pre-ordem\n\t2 - Em Ordem (De telefone)\n\t3 - Pos-Ordem\n");
-            scanf("%ld", &valor);
-            escolhaImprimir(tabela[calcularFuncaoHash(ddd)].inicio->elementos, valor);
+            printf("\t1 - Pre-ordem\n\t2 - Em Ordem (De telefone)\n\t3 - Pos-Ordem\n"); // Oferecendo as opções possiveis para impressão para o usuário
+            scanf("%ld", &auxTelefone); // Coletando a escolha
+            escolhaImprimir(tabela[calcularFuncaoHash(ddd)].inicio->elementos, auxTelefone); // Executando a função "escolhaImprimir" passando como parâmetro os dados coletados acima, e realizando a impressão pedida pelo usuário
 
             break;
 
-            case 4:
-            imprimirHash(tabela);
+            case 4: // Condição de impressão da tabela Hash onde os DDD's estão
+            imprimirHash(tabela); // Apenas imprime a tabela de DDD's completa
             break;
 
-            case 6:
+            case 5: // Condição para encontrar os dados do usuario pelo telefone e DDD
             printf("Digite o DDD de onde vc busca: ");
-            scanf("%d", &ddd);
-            if(checandoDDDExiste(tabela,ddd) == 0){
+            scanf("%d", &ddd); // Coletando em que árvore o usuário está
+            if(checandoDDDExiste(tabela,ddd) == 0){ // Checando se o essa árvore existe
                 printf("\t\nDDD inexistente!\n");
                 break;
             }
-            printf("Digite o telefone que vc busca: ");
-            scanf("%ld", &valor);
+            printf("Digite o telefone que vc busca: "); // Coletando o telefone que está sendo buscado
+            scanf("%ld", &auxTelefone);
 
 
-            if(busca(tabela[calcularFuncaoHash(ddd)].inicio->elementos, valor)){
-                printarBusca(tabela[calcularFuncaoHash(ddd)].inicio->elementos, valor);
-            } else {
+            if(busca(tabela[calcularFuncaoHash(ddd)].inicio->elementos, auxTelefone)){ // Checando se o telefone existe
+                printarBusca(tabela[calcularFuncaoHash(ddd)].inicio->elementos, auxTelefone);
+            } else { // Se não, apenas imprime:
                 printf("Nao existe\n");
             }
             break;
-            case 7:
-
-            
-            
-            break;
-            
-
             default:
+            printf("\tOpcao invalida!\n");
             break;
 
         }
@@ -147,45 +148,9 @@ int main(){
 
 
 
-int buscaAproximada(int numero, int valorBuscado) {
-    char strNumero[20];
-    char strValorBuscado[20];
-    
-    sprintf(strNumero, "%d", numero);
-    sprintf(strValorBuscado, "%d", valorBuscado);
-    
-    return strstr(strNumero, strValorBuscado) != NULL;
-}
-
-struct Telefone {
-    long int numero;
-};
 
 
 
-
-int numeroRepetido(NoAVL* raiz, int numero){
-    NoAVL* aux = raiz;
-    while(aux != NULL){
-        if(raiz->user->telefone == numero){
-            return 1;
-        }
-        return 0;
-    }
-}
-
-long int* gerarSugestao(NoAVL* raiz){
-    srand(time(NULL));
-    long int *vetorNumerosTelefones;
-
-    for(int i = 0; i < 3; i++){
-        do{
-        vetorNumerosTelefones[i] = 990000000 + rand() % 100000000;
-        } while(numeroRepetido(raiz, vetorNumerosTelefones[i]));
-    }
-
-    return vetorNumerosTelefones;
-}
 
 
 
@@ -207,7 +172,7 @@ void escolhaImprimir(NoAVL *raiz, int escolha){
         break;
     }
     } else {
-        printf("arvoreVazia!\n");
+        printf("arvore Vazia!\n");
     }
     
 }
